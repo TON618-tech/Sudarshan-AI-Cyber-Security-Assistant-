@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sudarshan AI — Architecture Diagrams</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg:       #0a0a0f;
+      --surface:  #111118;
+      --card:     #16161f;
+      --border:   #2a2a3a;
+      --accent:   #6c63ff;
+      --accent2:  #53d8fb;
+      --gold:     #f5a623;
+      --green:    #50fa7b;
+      --red:      #f05454;
+      --text:     #e0e0f0;
+      --muted:    #7a7a9a;
+      --sidebar-w: 280px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    #sidebar-header {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #sidebar-header .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo-text { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.2; }
+    .logo-sub  { font-size: 11px; color: var(--muted); }
+
+    .badge-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .badge {
+      font-size: 10px; font-weight: 600;
+      padding: 2px 8px; border-radius: 20px;
+      border: 1px solid;
+    }
+    .badge-arch  { color: var(--accent2); border-color: var(--accent2); }
+    .badge-algo  { color: var(--gold);    border-color: var(--gold); }
+    .badge-flow  { color: var(--green);   border-color: var(--green); }
+    .badge-seq   { color: var(--accent);  border-color: var(--accent); }
+    .badge-er    { color: var(--red);     border-color: var(--red); }
+
+    #nav { padding: 12px 0; flex: 1; }
+
+    .nav-group-title {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--muted);
+      padding: 10px 20px 4px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 20px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .nav-item:hover { background: rgba(108,99,255,0.08); color: var(--text); border-left-color: var(--accent); }
+    .nav-item.active { background: rgba(108,99,255,0.12); color: var(--accent); border-left-color: var(--accent); }
+
+    .nav-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 600;
+      width: 22px; height: 22px;
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .t-arch  { background: rgba(83,216,251,0.15); color: var(--accent2); }
+    .t-seq   { background: rgba(108,99,255,0.2);  color: var(--accent); }
+    .t-flow  { background: rgba(80,250,123,0.15); color: var(--green); }
+    .t-algo  { background: rgba(245,166,35,0.15); color: var(--gold); }
+    .t-er    { background: rgba(240,84,84,0.15);  color: var(--red); }
+
+    #sidebar-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      font-size: 11px; color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Main content ── */
+    #main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      min-width: 0;
+      padding: 0;
+    }
+
+    /* ── Top bar ── */
+    #topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(10,10,15,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 32px;
+      display: flex; align-items: center; gap: 16px;
+    }
+
+    #topbar h1 { font-size: 16px; font-weight: 600; }
+    #topbar .count { font-size: 12px; color: var(--muted); }
+
+    .search-box {
+      margin-left: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      width: 220px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box:focus { border-color: var(--accent); }
+    .search-box::placeholder { color: var(--muted); }
+
+    /* ── Diagram cards ── */
+    #diagrams { padding: 32px; display: flex; flex-direction: column; gap: 40px; }
+
+    .diagram-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+    .diagram-section:hover { border-color: rgba(108,99,255,0.4); }
+
+    .diagram-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+
+    .diag-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .diag-info { flex: 1; }
+    .diag-id   { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+    .diag-name { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .diag-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    .diag-type-badge {
+      font-size: 11px; font-weight: 600;
+      padding: 3px 10px; border-radius: 20px; border: 1px solid;
+      flex-shrink: 0;
+      align-self: flex-start;
+    }
+
+    .diagram-body {
+      padding: 28px 24px;
+      overflow-x: auto;
+      background: var(--bg);
+    }
+
+    .diagram-body .mermaid {
+      display: flex; justify-content: center;
+      min-height: 200px;
+    }
+
+    .diagram-body svg {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    /* ── Toolbar per card ── */
+    .diagram-toolbar {
+      padding: 10px 24px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .btn {
+      font-size: 12px; font-weight: 500;
+      padding: 5px 14px; border-radius: 6px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted);
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn:hover { background: rgba(108,99,255,0.15); color: var(--accent); border-color: var(--accent); }
+    .btn.active { background: rgba(108,99,255,0.2); color: var(--accent); border-color: var(--accent); }
+
+    .toolbar-sep { color: var(--border); font-size: 16px; user-select: none; }
+
+    /* ── Loading state ── */
+    .loading-msg {
+      text-align: center; padding: 60px 20px;
+      color: var(--muted); font-size: 14px;
+    }
+    .spinner {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      #sidebar { transform: translateX(-100%); }
+      #main { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<aside id="sidebar">
+  <div id="sidebar-header">
+    <div class="logo-row">
+      <div class="logo-icon">🛡️</div>
+      <div>
+        <div class="logo-text">Sudarshan AI</div>
+        <div class="logo-sub">CyberRabbit v7.12.9</div>
+      </div>
+    </div>
+    <div class="badge-row">
+      <span class="badge badge-arch">ARCH</span>
+      <span class="badge badge-seq">SEQ</span>
+      <span class="badge badge-flow">FLOW</span>
+      <span class="badge badge-algo">ALGO</span>
+      <span class="badge badge-er">ER</span>
+    </div>
+  </div>
+
+  <nav id="nav">
+    <div class="nav-group-title">Architecture</div>
+    <a class="nav-item" href="#d1"><span class="nav-num t-arch">01</span>System Components</a>
+    <a class="nav-item" href="#d2"><span class="nav-num t-arch">02</span>React Component Tree</a>
+    <a class="nav-item" href="#d3"><span class="nav-num t-arch">03</span>Backend Dependencies</a>
+    <a class="nav-item" href="#d12"><span class="nav-num t-arch">12</span>LLM Provider Routing</a>
+
+    <div class="nav-group-title" style="margin-top:8px">Sequences</div>
+    <a class="nav-item" href="#d4"><span class="nav-num t-seq">04</span>Chat Request Flow</a>
+    <a class="nav-item" href="#d5"><span class="nav-num t-seq">05</span>Summary Generation</a>
+
+    <div class="nav-group-title" style="margin-top:8px">Flowcharts</div>
+    <a class="nav-item" href="#d6"><span class="nav-num t-flow">06</span>Security Gateway</a>
+    <a class="nav-item" href="#d10"><span class="nav-num t-flow">10</span>Intelligence Engine</a>
+
+    <div class="nav-group-title" style="margin-top:8px">Algorithms</div>
+    <a class="nav-item" href="#d7"><span class="nav-num t-algo">07</span>Injection Scoring</a>
+    <a class="nav-item" href="#d8"><span class="nav-num t-algo">08</span>Budget State Machine</a>
+    <a class="nav-item" href="#d9"><span class="nav-num t-algo">09</span>HMAC Authentication</a>
+    <a class="nav-item" href="#d11"><span class="nav-num t-algo">11</span>Severity Classifier</a>
+    <a class="nav-item" href="#d13"><span class="nav-num t-algo">13</span>PII Redaction</a>
+    <a class="nav-item" href="#d14"><span class="nav-num t-algo">14</span>Client State Machine</a>
+
+    <div class="nav-group-title" style="margin-top:8px">Entity Relationship</div>
+    <a class="nav-item" href="#d15"><span class="nav-num t-er">15</span>Full System ER Map</a>
+  </nav>
+
+  <div id="sidebar-footer">15 diagrams &nbsp;·&nbsp; Mermaid v11</div>
+</aside>
+
+<!-- ── Main ── -->
+<div id="main">
+  <div id="topbar">
+    <h1>Architecture & Algorithm Reference</h1>
+    <span class="count">15 diagrams</span>
+    <input class="search-box" type="text" id="searchInput" placeholder="Search diagrams…" />
+  </div>
+
+  <div id="diagrams">
+
+    <!-- DIAGRAM 1 -->
+    <section class="diagram-section" id="d1" data-name="System Component Architecture">
+      <div class="diagram-header">
+        <span class="diag-num t-arch" style="background:rgba(83,216,251,0.15);color:#53d8fb">ARCH-01</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#53d8fb">System Component Architecture</div>
+          <div class="diag-name">High-Level System Component Map</div>
+          <div class="diag-desc">All 35+ modules across 5 physical subsystems — Frontend, Security Gateway, Backend Core, Intelligence Engine, and LLM Providers — with dependency arrows and color-coded layers.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#53d8fb;border-color:#53d8fb">graph TB</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","primaryBorderColor":"#6c63ff","lineColor":"#6c63ff","secondaryColor":"#111118","tertiaryColor":"#16161f","background":"#0a0a0f","nodeBorder":"#2a2a3a","clusterBkg":"#111118","titleColor":"#e0e0f0","edgeLabelBackground":"#16161f"}}}%%
+graph TB
+    subgraph FE ["React SPA Frontend (Vite)"]
+        direction TB
+        FE_APP["App.jsx Router"]
+        FE_CHAT["ChatPage.jsx"]
+        FE_DOCS["DocsPage.jsx"]
+        FE_LEGAL["LegalPage.jsx"]
+        FE_HOOK["useChat.js Hook"]
+        FE_API["api.js HMAC Client"]
+        FE_STG["storage.js SessionStorage"]
+        FE_MSG["ChatMessage.jsx"]
+        FE_INV["InvestigationPanel.jsx"]
+    end
+
+    subgraph GW ["Express Security Gateway"]
+        direction LR
+        GW_HPP["HPP"]
+        GW_HLM["Helmet.js"]
+        GW_CORS["CORS Guard"]
+        GW_AUTH["apiKeyAuth.js HMAC-SHA256"]
+        GW_BUDGET["budgetGuard.js $45/day"]
+        GW_RATE["rateLimiter IP-based"]
+    end
+
+    subgraph BE ["Express Core Backend"]
+        direction TB
+        BE_CTRL["chatController.js"]
+        BE_SVCHAT["chatService.js"]
+        BE_VAL["validation.js Injection Scorer"]
+        BE_REDACT["redaction.js 11 PII Patterns"]
+        BE_SYS["systemPrompt.js"]
+        BE_ENV["env.js Config"]
+    end
+
+    subgraph IE ["Sudarshan AI Intelligence Engine"]
+        IE_SVC["intelligenceService.js"]
+        IE_CLS["classifier.js 18 Categories"]
+        IE_ACT["actionEngine.js"]
+        IE_EVID["evidenceEngine.js"]
+        IE_LAW["lawMappingEngine.js BNS/IT/DPDP/PROG"]
+        IE_REP["reportingEngine.js NCRP/CERT-In/DoT"]
+    end
+
+    subgraph PROV ["LLM Provider Abstraction"]
+        direction LR
+        PROV_IDX["providers/index.js"]
+        PROV_OAI["openaiProvider.js"]
+        PROV_GEM["geminiProvider.js"]
+        PROV_CLD["claudeProvider.js"]
+        PROV_GRQ["groqProvider.js"]
+        PROV_OLL["ollamaProvider.js"]
+    end
+
+    subgraph ST ["Persistent Storage"]
+        ST_BUD[".budget-state.json"]
+        ST_SES["Browser sessionStorage"]
+    end
+
+    FE_APP --> FE_CHAT & FE_DOCS & FE_LEGAL
+    FE_CHAT --> FE_HOOK & FE_MSG & FE_INV
+    FE_HOOK --> FE_API --> FE_STG
+    FE_API -->|"HTTPS + HMAC Headers"| GW
+
+    GW_HPP --> GW_HLM --> GW_CORS --> GW_AUTH --> GW_BUDGET --> GW_RATE --> BE_CTRL
+
+    BE_CTRL --> BE_VAL & BE_REDACT & BE_SVCHAT & IE_SVC
+    BE_SVCHAT --> BE_SYS & PROV_IDX
+    IE_SVC --> IE_CLS --> PROV_IDX
+    IE_SVC --> IE_ACT & IE_EVID & IE_LAW & IE_REP
+    PROV_IDX --> PROV_OAI & PROV_GEM & PROV_CLD & PROV_GRQ & PROV_OLL
+
+    BE_ENV --> GW_AUTH & GW_BUDGET & PROV_IDX
+    GW_BUDGET <--> ST_BUD
+    FE_STG <--> ST_SES
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d1', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d1', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d1')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d1', 'ARCH-01_System_Components')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 2 -->
+    <section class="diagram-section" id="d2" data-name="React Component Tree">
+      <div class="diagram-header">
+        <span class="diag-num t-arch" style="background:rgba(83,216,251,0.15);color:#53d8fb">ARCH-02</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#53d8fb">React Component Hierarchy</div>
+          <div class="diag-name">Frontend Component Tree & Data Bindings</div>
+          <div class="diag-desc">Parent-child React component relationships, which components own state, and how data flows through the useChat hook to sessionStorage.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#53d8fb;border-color:#53d8fb">graph TD</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#6c63ff","background":"#0a0a0f"}}}%%
+graph TD
+    ROOT["main.jsx\nReactDOM.createRoot()"]
+    APP["App.jsx\nBrowserRouter + Routes"]
+    ROOT --> APP
+
+    APP --> HDR["Header.jsx\nNavigation + ThemeToggle"]
+    APP --> CHAT["ChatPage.jsx\nMain Chat Terminal"]
+    APP --> DOCS["DocsPage.jsx\nLaw Library Search"]
+    APP --> LEGAL["LegalPage.jsx\nToS / Privacy"]
+    APP --> ABOUT["AboutPage.jsx"]
+    APP --> CONTACT["ContactPage.jsx\nContact Form"]
+
+    CHAT --> AWR["AwarenessGateway.jsx\nDisclaimer Gate"]
+    CHAT --> MSGLIST["Message List\nmapped array"]
+    CHAT --> INPUTBAR["Input Bar\ncontrolled textarea"]
+    CHAT --> INVPANEL["InvestigationPanel.jsx\nLive Incident Panel"]
+    CHAT --> TYPING["TypingIndicator.jsx\nisLoading prop"]
+
+    MSGLIST --> MSG["ChatMessage.jsx x N\nreact-markdown + remark-gfm\nLink sanitizer"]
+
+    HOOK["useChat.js\n——————————\nSTATE:\n• messages\n• rollingSummary\n• incidentData\n• exchangeCount\n• isLoading / error\n——————————\nACTIONS:\n• sendMessage()\n• clearChat()\n——————————\nBACKGROUND:\n• generateSummary()"]
+
+    CHAT -.->|"destructures"| HOOK
+    HOOK --> API["api.js\nsendChatMessage()\ngenerateSummary()\nfetchWithTimeout()\ngenerateRequestSignature()"]
+    HOOK --> STGU["storage.js\nloadSessionMessages()\nsaveSessionMessages()"]
+    STGU <-->|"read / write"| SS["Browser sessionStorage\nmessages / rollingSummary\nincidentData / exchangeCount"]
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d2', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d2', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d2')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d2', 'ARCH-02_React_Component_Tree')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 3 -->
+    <section class="diagram-section" id="d3" data-name="Backend Module Dependencies">
+      <div class="diagram-header">
+        <span class="diag-num t-arch" style="background:rgba(83,216,251,0.15);color:#53d8fb">ARCH-03</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#53d8fb">Backend Dependency Graph</div>
+          <div class="diag-name">Node.js Module Import & Dependency Graph</div>
+          <div class="diag-desc">Every import relationship across all backend modules — the exact chain from server.js through to the LLM providers.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#53d8fb;border-color:#53d8fb">graph LR</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#53d8fb","background":"#0a0a0f"}}}%%
+graph LR
+    SRV["server.js"]
+    APP["app.js"]
+    ROUTES["chatRoutes.js"]
+    CTRL["chatController.js"]
+    CHAT_SVC["chatService.js"]
+    INTEL_SVC["intelligenceService.js"]
+    CLS["classifier.js"]
+    ACT["actionEngine.js"]
+    EVID["evidenceEngine.js"]
+    LAW["lawMappingEngine.js"]
+    REP["reportingEngine.js"]
+    PROV_IDX["providers/index.js"]
+    OAI["openaiProvider.js"]
+    GEM["geminiProvider.js"]
+    CLD["claudeProvider.js"]
+    GRQ["groqProvider.js"]
+    OLL["ollamaProvider.js"]
+    AUTH["apiKeyAuth.js"]
+    BUDGET["budgetGuard.js"]
+    RATE["rateLimiter.js"]
+    VAL["validation.js"]
+    REDACT["redaction.js"]
+    SYS["systemPrompt.js"]
+    LOG["logger.js"]
+    ENV["env.js"]
+
+    SRV --> APP
+    APP --> ROUTES & ENV
+    ROUTES --> CTRL & AUTH & BUDGET & RATE
+    CTRL --> CHAT_SVC & INTEL_SVC & VAL & REDACT & ENV
+    CHAT_SVC --> PROV_IDX & SYS
+    INTEL_SVC --> CLS & ACT & EVID & LAW & REP
+    CLS --> PROV_IDX
+    PROV_IDX --> OAI & GEM & CLD & GRQ & OLL & ENV
+    AUTH --> ENV & LOG
+    BUDGET --> ENV & LOG
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d3', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d3', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d3')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d3', 'ARCH-03_Backend_Dependencies')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 4 -->
+    <section class="diagram-section" id="d4" data-name="Chat Request Sequence">
+      <div class="diagram-header">
+        <span class="diag-num t-seq" style="background:rgba(108,99,255,0.2);color:#6c63ff">SEQ-01</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#6c63ff">End-to-End Chat Message Sequence</div>
+          <div class="diag-name">Primary Chat Request — Full Sequence Diagram</div>
+          <div class="diag-desc">40+ numbered steps across 14 actors — from user keystroke through HMAC signing, all 5 security gates, parallel LLM + Intelligence Engine execution, to the rendered response.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#6c63ff;border-color:#6c63ff">sequenceDiagram</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#6c63ff","background":"#0a0a0f","activationBorderColor":"#6c63ff","activationBkgColor":"#1a1a2e"}}}%%
+sequenceDiagram
+    autonumber
+    actor USR as User Browser
+    participant HOOK as useChat.js
+    participant API as api.js
+    participant GW as Security Gateway
+    participant CTRL as chatController.js
+    participant VAL as validation.js
+    participant CHAT as chatService.js
+    participant INTEL as intelligenceService.js
+    participant LLM as LLM Provider
+
+    USR->>HOOK: sendMessage(inputText)
+    HOOK->>HOOK: Pack recentMessages (last 4)
+    HOOK->>HOOK: Optimistic UI update + setIsLoading(true)
+    HOOK->>API: sendChatMessage(msg, summary, history, incidentData, count)
+
+    Note over API: generateRequestSignature()
+    API->>API: timestamp = floor(Date.now()/1000)
+    API->>API: payload = timestamp:POST:/chat
+    API->>API: HMAC-SHA256(payload, VITE_API_KEY) via Web Crypto
+    API->>API: Headers: X-API-Key, X-Request-Timestamp, X-Request-Signature
+
+    API->>GW: POST /chat (50kb limit, 20s timeout)
+
+    Note over GW: Security chain
+    GW->>GW: HPP strip duplicates
+    GW->>GW: Helmet — 11 headers
+    GW->>GW: CORS origin check
+    GW->>GW: apiKeyAuth — HMAC verify + 30s timestamp window
+    GW->>GW: budgetGuard — $45/day check
+    GW->>GW: rateLimiter — IP per-minute + per-hour
+
+    GW->>CTRL: postChat(req, res)
+    CTRL->>VAL: validateChatPayload(body)
+    Note over VAL: Normalize unicode + leet-speak\nScore injection patterns\nBlock if score >= 8\nWhitelist incidentData fields
+    VAL-->>CTRL: sanitized payload
+
+    CTRL->>CTRL: assessInitialSeverity(message)
+    Note over CTRL: HIGH pass first, then LOW\nWildcard regex matching\nHinglish + English
+
+    par LLM Response
+        CTRL->>CHAT: getChatResponse(msg, severity, summary, history)
+        CHAT->>CHAT: Adapt maxTokens by severity
+        CHAT->>LLM: generateResponse(systemPrompt, ...)
+        LLM-->>CHAT: reply text + usage
+        CHAT-->>CTRL: reply string
+    and Intelligence Engine
+        CTRL->>INTEL: processIntelligence(redactedSummary, text)
+        INTEL->>LLM: classifyIncident → JSON output
+        LLM-->>INTEL: category, severity, risk, confidence
+        INTEL->>INTEL: getActions + getEvidence + getLaws + getPortals
+        INTEL-->>CTRL: intelligencePayload
+    end
+
+    CTRL-->>API: 200 {success, data: {reply, incidentData}}
+    API-->>HOOK: {reply, incidentData}
+    HOOK->>HOOK: Update state + sessionStorage
+    HOOK-->>USR: Render response + InvestigationPanel
+
+    Note over HOOK,API: Background (non-blocking)
+    HOOK--)API: generateSummary(summary, recent)
+    API--)LLM: POST /chat/summary
+    LLM--)HOOK: compressed summary → sessionStorage
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d4', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d4', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d4')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d4', 'SEQ-01_Chat_Request_Flow')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 5 -->
+    <section class="diagram-section" id="d5" data-name="Summary Generation Pipeline">
+      <div class="diagram-header">
+        <span class="diag-num t-seq" style="background:rgba(108,99,255,0.2);color:#6c63ff">SEQ-02</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#6c63ff">Rolling Summary Compression</div>
+          <div class="diag-name">Background Summary Generation Pipeline</div>
+          <div class="diag-desc">The async fire-and-forget pipeline that runs after every exchange to compress session history, keeping the LLM context window lean across long conversations.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#6c63ff;border-color:#6c63ff">sequenceDiagram</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#6c63ff","background":"#0a0a0f"}}}%%
+sequenceDiagram
+    autonumber
+    participant HOOK as useChat.js
+    participant API as api.js
+    participant GW as Express Gateway
+    participant CTRL as postSummary handler
+    participant CHAT as chatService.js
+    participant LLM as LLM Provider
+
+    Note over HOOK: After main chat response received (non-blocking)
+    HOOK--)API: generateSummary(currentSummary, recentMessages)
+
+    API->>API: generateRequestSignature(POST, /chat/summary)
+    API->>GW: POST /chat/summary
+
+    GW->>GW: apiKeyAuth → budgetGuard → rateLimiter
+
+    GW->>CTRL: postSummary(req, res)
+    CTRL->>CTRL: validateSummaryPayload()
+    Note over CTRL: recentMessages non-empty\neach message text capped at 4000 chars\ncurrentSummary capped at 10000 chars
+
+    CTRL->>CHAT: generateRollingSummary(currentSummary, recentMessages)
+    CHAT->>LLM: generateSummary(memoryPrompt, summary, messages)
+    Note over LLM: Merge current summary + recent exchange\nPreserve REDACTED placeholders\nOutput cohesive investigation log
+    LLM-->>CHAT: compressed summary string
+    CHAT-->>CTRL: summary
+
+    CTRL-->>API: 200 {success, data: {summary}}
+    API-->>HOOK: newSummary
+    HOOK->>HOOK: setRollingSummary(newSummary)
+    HOOK->>HOOK: sessionStorage.setItem(rollingSummary, ...)
+
+    Note over HOOK: On any error → silently fall back to previous summary
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d5', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d5', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d5')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d5', 'SEQ-02_Summary_Pipeline')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 6 -->
+    <section class="diagram-section" id="d6" data-name="Security Gateway Decision Chain">
+      <div class="diagram-header">
+        <span class="diag-num t-flow" style="background:rgba(80,250,123,0.15);color:#50fa7b">FLOW-01</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#50fa7b">Security Middleware Decision Chain</div>
+          <div class="diag-name">Security Gateway — Full Flowchart</div>
+          <div class="diag-desc">Every pass/fail decision gate a request must clear: HPP → Helmet → CORS → HMAC Auth → Timestamp Window → Signature Verify → Budget → Rate Limit → Controller.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#50fa7b;border-color:#50fa7b">flowchart TD</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#50fa7b","background":"#0a0a0f"}}}%%
+flowchart TD
+    START([HTTP Request]) --> HPP
+
+    HPP["HPP: Remove duplicate params"]
+    HPP --> HELMET["Helmet: Apply 11 Security Headers\nCSP · HSTS · X-Frame-Options\nPermissions-Policy · Referrer-Policy"]
+    HELMET --> CORS_CHK{Origin in\nallowed list?}
+    CORS_CHK -- Yes --> UUID_GEN["Assign X-Request-ID\ncrypto.randomUUID()"]
+    CORS_CHK -- No --> CORS_ERR["403 CORS Error"]
+
+    UUID_GEN --> HDR_CHK{"X-API-Key +\nX-Request-Timestamp +\nX-Request-Signature\nall present?"}
+    HDR_CHK -- No --> FAIL1["401 Missing auth headers"]
+    HDR_CHK -- Yes --> KEY_CHK{"X-API-Key ===\nenv.apiSecretKey?"}
+
+    KEY_CHK -- No --> FAIL2["403 Invalid API key"]
+    KEY_CHK -- Yes --> TS_CHK{"now - timestamp\n< 30 seconds?"}
+
+    TS_CHK -- No --> FAIL3["403 Timestamp expired"]
+    TS_CHK -- Yes --> SIG_BUILD["Build: timestamp:METHOD:path\nHMAC-SHA256(payload, secret)"]
+
+    SIG_BUILD --> SIG_CHK{"timingSafeEqual\n(received, expected)?"}
+    SIG_CHK -- No --> FAIL4["403 Invalid signature"]
+    SIG_CHK -- Yes --> BUDGET_READ["Read .budget-state.json\nReset if new UTC day"]
+
+    BUDGET_READ --> COST["cost += providerRate\nopenai:$0.002 gemini:$0.01\nclaude:$0.02 groq:$0.001"]
+    COST --> BUDGET_CHK{"cost > $45.00?"}
+    BUDGET_CHK -- Yes --> FAIL5["503 Daily budget exhausted"]
+    BUDGET_CHK -- No --> BUDGET_WRITE["Write state to file"]
+
+    BUDGET_WRITE --> RATE_MIN{"Under per-minute\nIP limit?"}
+    RATE_MIN -- No --> FAIL6["429 Too Many Requests"]
+    RATE_MIN -- Yes --> RATE_HR{"Under per-hour\nIP limit?"}
+    RATE_HR -- No --> FAIL6
+    RATE_HR -- Yes --> CONTROLLER(["Proceed to chatController.js"])
+
+    style START fill:#1a1a2e,stroke:#6c63ff,color:#fff
+    style CONTROLLER fill:#0f3460,stroke:#53d8fb,color:#fff
+    style FAIL1,FAIL2,FAIL3,FAIL4,FAIL5,FAIL6,CORS_ERR fill:#3a0000,stroke:#f05454,color:#ffd6d6
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d6', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d6', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d6')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d6', 'FLOW-01_Security_Gateway')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 7 -->
+    <section class="diagram-section" id="d7" data-name="Prompt Injection Scoring Algorithm">
+      <div class="diagram-header">
+        <span class="diag-num t-algo" style="background:rgba(245,166,35,0.15);color:#f5a623">ALGO-01</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#f5a623">Prompt Injection Detection</div>
+          <div class="diag-name">Prompt Injection Scoring Algorithm (validation.js)</div>
+          <div class="diag-desc">5-step input normalization (zero-width strip → Cyrillic homoglyphs → leet-speak → lowercase) then weighted pattern scoring across 14 injection patterns. Blocks at score ≥ 8.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#f5a623;border-color:#f5a623">flowchart TD</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#f5a623","background":"#0a0a0f"}}}%%
+flowchart TD
+    IN(["Raw user message"]) --> ZW["Strip zero-width chars\nU+200B U+200D UFEFF U+00AD → empty"]
+    ZW --> CYR["Cyrillic homoglyphs → Latin\nа→a е→e о→o р→p с→c у→y х→x"]
+    CYR --> LEET["Leet-speak decode\n0→o  1→l  3→e  4→a  5→s"]
+    LEET --> LOWER[".toLowerCase()"]
+    LOWER --> INIT["injectionScore = 0"]
+
+    INIT --> HW["HIGH WEIGHT patterns score 8–10"]
+    HW --> HW1["ignore previous instructions → +10"]
+    HW --> HW2["jailbreak → +10"]
+    HW --> HW3["entering developer/god mode → +10"]
+    HW --> HW4["override/forget/disregard rules → +10"]
+    HW --> HW5["you are now a [role] → +8"]
+    HW --> HW6["act as a [non-victim] → +8"]
+    HW --> HW7["prompt injection → +8"]
+
+    HW1 & HW2 & HW3 & HW4 & HW5 & HW6 & HW7 --> ACCUM["Accumulate total score"]
+
+    ACCUM --> MW["MEDIUM WEIGHT patterns score 5–8"]
+    MW --> MW1["reveal system prompt → +8"]
+    MW --> MW2["create malware/exploit → +8"]
+    MW --> MW3["bypass security filter → +6"]
+    MW --> MW4["what are your instructions → +6"]
+    MW --> MW5["how to hack/exploit → +5"]
+    MW --> MW6["system prompt mention → +5"]
+
+    MW1 & MW2 & MW3 & MW4 & MW5 & MW6 --> TOTAL["Final injection score"]
+
+    TOTAL --> CHK{"score >= 8?"}
+    CHK -- Yes --> BLOCK["400 Bad Request\nSecurity filter triggered"]
+    CHK -- No --> PASS["Continue validation\n→ next checks"]
+
+    style IN fill:#1b1b2f,stroke:#f5a623,color:#fff
+    style BLOCK fill:#3a0000,stroke:#f05454,color:#ffd6d6
+    style PASS fill:#0a2a10,stroke:#50fa7b,color:#d6ffd6
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d7', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d7', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d7')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d7', 'ALGO-01_Injection_Scoring')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 8 -->
+    <section class="diagram-section" id="d8" data-name="Budget Guard State Machine">
+      <div class="diagram-header">
+        <span class="diag-num t-algo" style="background:rgba(245,166,35,0.15);color:#f5a623">ALGO-02</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#f5a623">Budget Circuit Breaker</div>
+          <div class="diag-name">Daily Budget Guard — State Machine</div>
+          <div class="diag-desc">File-persisted state machine modelling all states of the $45/day circuit breaker — including UTC midnight reset, per-provider cost accumulation, and HTTP 503 blocking.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#f5a623;border-color:#f5a623">stateDiagram-v2</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#f5a623","background":"#0a0a0f"}}}%%
+stateDiagram-v2
+    [*] --> IDLE : Server starts
+    IDLE --> READING : Request arrives after auth passes
+    READING --> DATE_CHECK : readBudgetState() from file
+    DATE_CHECK --> RESET_DAY : state.date != todayUTC
+    DATE_CHECK --> COST_CALC : state.date == todayUTC
+    RESET_DAY --> COST_CALC : Reset count=0 cost=0
+    COST_CALC --> WRITING : count += 1\ncost += providerRate
+    WRITING --> OVER_BUDGET : cost > $45.00
+    WRITING --> UNDER_BUDGET : cost <= $45.00
+    OVER_BUDGET --> BLOCKED : writeBudgetState()\nReturn HTTP 503
+    UNDER_BUDGET --> PROCEED : writeBudgetState()\nCall next()
+    BLOCKED --> IDLE
+    PROCEED --> IDLE
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d8', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d8', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d8')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d8', 'ALGO-02_Budget_State_Machine')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 9 -->
+    <section class="diagram-section" id="d9" data-name="HMAC Authentication Algorithm">
+      <div class="diagram-header">
+        <span class="diag-num t-algo" style="background:rgba(245,166,35,0.15);color:#f5a623">ALGO-03</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#f5a623">HMAC-SHA256 Authentication</div>
+          <div class="diag-name">Dual-Side HMAC-SHA256 Request Authentication</div>
+          <div class="diag-desc">Exact algorithm on both client (Web Crypto API) and server (Node.js crypto) — including the timing-safe equal comparison that prevents side-channel attacks.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#f5a623;border-color:#f5a623">flowchart LR</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#f5a623","background":"#0a0a0f"}}}%%
+flowchart LR
+    subgraph CLIENT["Browser — api.js"]
+        C1["timestamp = floor(Date.now()/1000)"]
+        C2["urlPath = new URL(url).pathname"]
+        C3["payload = timestamp:POST:urlPath"]
+        C4["importKey HMAC-SHA256 from VITE_API_KEY"]
+        C5["sign(HMAC, cryptoKey, encode(payload))"]
+        C6["signature = hex-encode(signatureBuffer)"]
+        C7["Send headers:\nX-API-Key\nX-Request-Timestamp\nX-Request-Signature"]
+        C1 --> C2 --> C3 --> C4 --> C5 --> C6 --> C7
+    end
+
+    subgraph SERVER["Node.js — apiKeyAuth.js"]
+        S1["Extract all 3 headers"]
+        S2{"All present?"}
+        S3{"X-API-Key matches\nenv.apiSecretKey?"}
+        S4{"Timestamp within\n30 seconds?"}
+        S5["Reconstruct payload:\ntimestamp:METHOD:path"]
+        S6["createHmac(sha256, secret)\n.update(payload).digest(hex)"]
+        S7["timingSafeEqual(\n  Buffer(received),\n  Buffer(expected)\n)"]
+        S8{"Match?"}
+        S9["next() — PASS"]
+        F1["401"] 
+        F2["403"] 
+        F3["403"] 
+        F4["403"]
+        S1 --> S2
+        S2 -- No --> F1
+        S2 -- Yes --> S3
+        S3 -- No --> F2
+        S3 -- Yes --> S4
+        S4 -- No --> F3
+        S4 -- Yes --> S5 --> S6 --> S7 --> S8
+        S8 -- No --> F4
+        S8 -- Yes --> S9
+    end
+
+    C7 -->|"HTTPS"| S1
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d9', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d9', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d9')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d9', 'ALGO-03_HMAC_Authentication')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 10 -->
+    <section class="diagram-section" id="d10" data-name="Intelligence Engine Pipeline">
+      <div class="diagram-header">
+        <span class="diag-num t-flow" style="background:rgba(80,250,123,0.15);color:#50fa7b">FLOW-02</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#50fa7b">Intelligence Engine Pipeline</div>
+          <div class="diag-name">Sudarshan AI Intelligence Engine — Full Pipeline</div>
+          <div class="diag-desc">LLM classifier → confidence gate (threshold 70) → 4 deterministic local DB lookups (actions, evidence, laws, portals). Shows all 18 incident categories and the low-confidence stub path.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#50fa7b;border-color:#50fa7b">flowchart TD</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#50fa7b","background":"#0a0a0f"}}}%%
+flowchart TD
+    IN(["processIntelligence(redactedSummary, text)"]) --> CLS_CALL
+
+    CLS_CALL["classifyIncident(summary, text)\nLLM prompt: output raw JSON only\n18 allowed categories"]
+    CLS_CALL --> HAS_STRUCT{"Provider supports\ngenerateStructuredData?"}
+    HAS_STRUCT -- No --> NULL["Return null — Ollama fallback"]
+    HAS_STRUCT -- Yes --> LLM_CALL["LLM API call\ngenerateStructuredData(classificationPrompt)"]
+    LLM_CALL --> MD_CHK{"Response wrapped\nin markdown?"}
+    MD_CHK -- Yes --> STRIP["Strip json wrapper"]
+    MD_CHK -- No --> PARSE
+    STRIP --> PARSE["JSON.parse(rawJson)"]
+    PARSE --> OK{"Parse OK?"}
+    OK -- No --> ERR["console.error + return null"]
+    OK -- Yes --> CONF{"confidence >= 70\nAND category defined?"}
+    CONF -- No --> LOW["Return classified:false\nInsufficient information"]
+    CONF -- Yes --> CAT["Extract: category, severity, risk, status, confidence"]
+
+    CAT --> E1["getImmediateActions(category)\nactionEngine.js — local DB"]
+    CAT --> E2["getEvidenceChecklist(category)\nevidenceEngine.js — local DB"]
+    CAT --> E3["getReportingGuidance(category)\nreportingEngine.js — NCRP/1930/CERT-In/DoT"]
+    CAT --> E4["getRelevantLaws(category)\nlawMappingEngine.js — BNS/IT Act/DPDP/PROG"]
+
+    E1 & E2 & E3 & E4 --> PAYLOAD["Build intelligencePayload\nclassified:true, category, severity, risk\nimmediateActions, evidenceChecklist\nreportingGuidance, relevantLaws, timestamp"]
+    PAYLOAD --> OUT(["Return to chatController.js"])
+
+    style IN fill:#1b1b2f,stroke:#50fa7b,color:#d6ffd6
+    style OUT fill:#1b1b2f,stroke:#50fa7b,color:#d6ffd6
+    style LOW fill:#2a2000,stroke:#f5a623,color:#fff
+    style NULL,ERR fill:#3a0000,stroke:#f05454,color:#ffd6d6
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d10', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d10', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d10')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d10', 'FLOW-02_Intelligence_Engine')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 11 -->
+    <section class="diagram-section" id="d11" data-name="Severity Classification Wildcard Matcher">
+      <div class="diagram-header">
+        <span class="diag-num t-algo" style="background:rgba(245,166,35,0.15);color:#f5a623">ALGO-04</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#f5a623">Severity Classifier & Wildcard Matcher</div>
+          <div class="diag-name">Severity Assessment & Natural Language Wildcard Algorithm</div>
+          <div class="diag-desc">The wildcard compiler that converts "paisa * chori" into /\bpaisa.*chori\b/i — enabling Hinglish natural language severity detection. HIGH pass runs before LOW.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#f5a623;border-color:#f5a623">flowchart TD</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#f5a623","background":"#0a0a0f"}}}%%
+flowchart TD
+    IN(["assessInitialSeverity(message)"]) --> COMPILE
+
+    subgraph COMPILER["compileKeywordToPattern() — Wildcard Compiler"]
+        WC1["Input: 'paisa * chori'"]
+        WC2["Split on whitespace and *\n→ tokens: paisa, chori"]
+        WC3["escapeRegex each token"]
+        WC4["Join with '.*'\n→ 'paisa.*chori'"]
+        WC5["Wrap word boundaries\n→ /\\bpaisa.*chori\\b/i"]
+        WC1 --> WC2 --> WC3 --> WC4 --> WC5
+    end
+
+    COMPILE["Pre-compile all keyword arrays\ninto RegExp at module load"] --> LOWER["message.toLowerCase()"]
+
+    LOWER --> H_PASS["PASS 1 — HIGH severity keywords\n(checked FIRST)"]
+    H_PASS --> H_EN["English: bank fraud · account hacked\notp stolen · sextortion · ransomware\nidentity theft · sim swap · deepfake\nupi fraud · blackmail · extortion"]
+    H_PASS --> H_HI["Hinglish: paisa chori · account hack ho gaya\notp maang raha hai · online thagi\nblackmail kar raha hai · loan fraud\nupi se paisa gaya · aadhaar misuse"]
+    H_EN & H_HI --> HIGH_CHK{"Any HIGH match?"}
+    HIGH_CHK -- Yes --> R_HIGH["Return 'HIGH'\nmaxTokens = 2048"]
+
+    HIGH_CHK -- No --> L_PASS["PASS 2 — LOW severity keywords\n(checked SECOND)"]
+    L_PASS --> L_EN["English: password reset · spam email\nsuspicious link · privacy settings\ntwo factor auth · digital safety tips"]
+    L_PASS --> L_HI["Hinglish: password bhool gaya · account band hai\nscam message aaya · link safe hai kya\nsafe internet tips · app permission"]
+    L_EN & L_HI --> LOW_CHK{"Any LOW match?"}
+    LOW_CHK -- Yes --> R_LOW["Return 'LOW'\nmaxTokens = 500"]
+    LOW_CHK -- No --> R_UNK["Return 'UNKNOWN'\nmaxTokens = 800"]
+
+    style IN fill:#1b1b2f,stroke:#f5a623,color:#fff
+    style R_HIGH fill:#3a0000,stroke:#f05454,color:#ffd6d6
+    style R_LOW fill:#0a2a10,stroke:#50fa7b,color:#d6ffd6
+    style R_UNK fill:#2a2a2a,stroke:#888,color:#ddd
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d11', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d11', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d11')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d11', 'ALGO-04_Severity_Classifier')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 12 -->
+    <section class="diagram-section" id="d12" data-name="LLM Provider Abstraction">
+      <div class="diagram-header">
+        <span class="diag-num t-arch" style="background:rgba(83,216,251,0.15);color:#53d8fb">ARCH-04</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#53d8fb">LLM Provider Abstraction</div>
+          <div class="diag-name">LLM Provider Registry & Interface Contract</div>
+          <div class="diag-desc">The registry pattern that routes all LLM calls to one provider via env.LLM_PROVIDER. Shows the standard interface each provider must implement: generateResponse, generateSummary, generateStructuredData.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#53d8fb;border-color:#53d8fb">graph TD</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#53d8fb","background":"#0a0a0f"}}}%%
+graph TD
+    ENV["env.LLM_PROVIDER\nopenai | gemini | claude | groq | ollama"]
+
+    ENV --> IDX["providers/index.js\ngetActiveProvider()\nproviders = {openai, gemini, claude, groq, ollama}"]
+
+    IDX --> IFACE["Standard Interface Contract\n—————————————————\ngenerateResponse(systemPrompt, summary, messages, userMsg, options)\ngenerateSummary(sysPrompt, currentSummary, messages)\ngenerateStructuredData(sysPrompt, userPrompt)  optional"]
+
+    IFACE --> OAI["openaiProvider.js\nModel: gpt-4o-mini (default)\nSDK: openai ^4.73"]
+    IFACE --> GEM["geminiProvider.js\nModel: gemini-2.5-pro (default)\nSDK: @google/generative-ai ^0.24"]
+    IFACE --> CLD["claudeProvider.js\nModel: claude-3-sonnet (default)\nSDK: @anthropic-ai/sdk ^0.105"]
+    IFACE --> GRQ["groqProvider.js\nModel: mixtral-8x7b-32768\nSDK: groq-sdk ^1.3"]
+    IFACE --> OLL["ollamaProvider.js\nModel: llama3 (default)\nBase: localhost:11434\nNOTE: no generateStructuredData"]
+
+    subgraph CONSUMERS["Consumers"]
+        CS["chatService.js\ngenerateResponse()\ngenerateSummary()"]
+        CL["classifier.js\ngenerateStructuredData()"]
+    end
+
+    IDX --> CONSUMERS
+
+    style ENV fill:#0f3460,stroke:#53d8fb,color:#d6f5ff
+    style IFACE fill:#1a1a2e,stroke:#6c63ff,color:#e0e0ff
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d12', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d12', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d12')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d12', 'ARCH-04_LLM_Providers')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 13 -->
+    <section class="diagram-section" id="d13" data-name="PII Redaction Pipeline">
+      <div class="diagram-header">
+        <span class="diag-num t-algo" style="background:rgba(245,166,35,0.15);color:#f5a623">ALGO-05</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#f5a623">PII Redaction Pipeline</div>
+          <div class="diag-name">11-Pattern PII Redaction Engine (redaction.js)</div>
+          <div class="diag-desc">All 11 regex passes applied sequentially — credit cards, API keys, email, OTP/PIN, Aadhaar, PAN, Indian mobile, IPv4/IPv6, UPI IDs, IFSC codes, bank account numbers.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#f5a623;border-color:#f5a623">flowchart TD</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#f5a623","background":"#0a0a0f"}}}%%
+flowchart TD
+    IN(["redactSensitiveData(text)"]) --> P1
+    P1["1. Credit Card Numbers (13–19 digits)"] --> P2
+    P2["2. API Keys & Bearer Tokens (sk-... Bearer ...)"] --> P3
+    P3["3. Email Addresses"] --> P4
+    P4["4. OTP / PIN / Password values (context-prefixed)"] --> P5
+    P5["5. Aadhaar Numbers (12 digits, optional spaces/dashes)"] --> P6
+    P6["6. PAN Card Numbers (5L-4N-1L format)"] --> P7
+    P7["7. Indian Mobile Numbers (+91 or 0 prefix, 6-9 start)"] --> P8
+    P8["8. IPv4 Addresses (d.d.d.d)"] --> P9
+    P9["9. IPv6 Addresses (full form)"] --> P10
+    P10["10. UPI IDs (handle@bank format)"] --> P11
+    P11["11. IFSC Codes (4L-0-6char)"] --> P12
+    P12["12. Bank Account Numbers (context: account/acct/a-c prefix)"] --> OUT
+
+    OUT(["Return redacted text\nPII → REDACTED placeholders\npreserved for LLM context continuity"])
+
+    style IN fill:#1b1b2f,stroke:#f5a623,color:#fff
+    style OUT fill:#0f3460,stroke:#53d8fb,color:#d6f5ff
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d13', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d13', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d13')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d13', 'ALGO-05_PII_Redaction')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 14 -->
+    <section class="diagram-section" id="d14" data-name="Client State Machine">
+      <div class="diagram-header">
+        <span class="diag-num t-algo" style="background:rgba(245,166,35,0.15);color:#f5a623">ARCH-05</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#f5a623">Client-Side State Machine</div>
+          <div class="diag-name">useChat.js — Client State Machine & Session Persistence</div>
+          <div class="diag-desc">The useChat hook modelled as a formal state machine — all 7 states (IDLE, SENDING, OPTIMISTIC, AWAITING_API, ERROR, RESPONSE_RECEIVED, CLEARED) with sessionStorage side-effects.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#f5a623;border-color:#f5a623">stateDiagram-v2</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#f5a623","background":"#0a0a0f"}}}%%
+stateDiagram-v2
+    [*] --> IDLE : Component mounts\nLoad from sessionStorage
+
+    IDLE --> SENDING : sendMessage(input)
+    note right of IDLE
+        Guards:
+        isLoading = true → reject
+        input.trim() = '' → reject
+    end note
+
+    SENDING --> OPTIMISTIC : setIsLoading(true)\nAppend user bubble\npersist to sessionStorage
+
+    OPTIMISTIC --> AWAITING_API : POST /chat with HMAC headers
+
+    AWAITING_API --> ERROR_STATE : ApiError thrown\n400/401/403/429/503/408
+    ERROR_STATE --> IDLE : setIsLoading(false)\nsetError(message)
+
+    AWAITING_API --> RESPONSE_RECEIVED : reply + incidentData returned
+
+    RESPONSE_RECEIVED --> IDLE : Update incidentData\nIncrement exchangeCount\nAppend assistant bubble\npersist all to sessionStorage\nsetIsLoading(false)
+
+    IDLE --> SUMMARIZING : generateSummary()\nfire-and-forget
+    SUMMARIZING --> IDLE : setRollingSummary(newSummary)\nsessionStorage updated
+
+    IDLE --> CLEARED : clearChat()
+    CLEARED --> IDLE : All state reset to empty\nAll sessionStorage keys removed
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d14', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d14', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d14')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d14', 'ARCH-05_Client_State_Machine')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+    <!-- DIAGRAM 15 -->
+    <section class="diagram-section" id="d15" data-name="Full System ER Map">
+      <div class="diagram-header">
+        <span class="diag-num t-er" style="background:rgba(240,84,84,0.15);color:#f05454">ER-01</span>
+        <div class="diag-info">
+          <div class="diag-id" style="color:#f05454">Full System Entity-Relationship Map</div>
+          <div class="diag-name">End-to-End Data Transformation Map</div>
+          <div class="diag-desc">Every data entity and its transformation — from USER_INPUT through HMAC signing, validation, redaction, severity assessment, dual LLM calls, intelligence engine, and final rendered output.</div>
+        </div>
+        <span class="diag-type-badge" style="color:#f05454;border-color:#f05454">erDiagram</span>
+      </div>
+      <div class="diagram-body">
+        <div class="mermaid">
+%%{init:{"theme":"dark","themeVariables":{"primaryColor":"#1a1a2e","primaryTextColor":"#e0e0f0","lineColor":"#f05454","background":"#0a0a0f"}}}%%
+erDiagram
+    USER_INPUT {
+        string rawText "User-typed message up to 4000 chars"
+        string language "English or Hinglish"
+    }
+    CHAT_PAYLOAD {
+        string message "Trimmed input text"
+        string rollingSummary "Max 5000 chars compressed history"
+        array recentMessages "Last 4 exchanges"
+        object incidentData "Classification metadata"
+        int exchangeCount "0 to 100 session counter"
+    }
+    HMAC_HEADERS {
+        string X_API_Key "Shared HMAC secret"
+        string X_Request_Timestamp "Unix epoch seconds"
+        string X_Request_Signature "HMAC-SHA256 hex digest"
+    }
+    VALIDATED_PAYLOAD {
+        string message "Injection-scored and type-checked"
+        string rollingSummary "Capped at 5000 chars"
+        array recentMessages "Max 10 each capped 2000 chars"
+        object sanitizedIncidentData "Whitelist-filtered fields only"
+        int exchangeCount "Validated 0-100 integer"
+    }
+    REDACTED_SUMMARY {
+        string text "Summary with PII replaced by REDACTED"
+    }
+    SEVERITY_RESULT {
+        string level "HIGH or LOW or UNKNOWN"
+        int maxTokens "500 or 1024 or 2048"
+    }
+    LLM_CLASSIFICATION_RESPONSE {
+        string category "One of 18 incident categories"
+        string severity "Low Medium High Critical"
+        string risk "Low Medium High Critical"
+        string status "Open Monitoring Contained Resolved"
+        int confidence "0 to 100"
+    }
+    INTELLIGENCE_PAYLOAD {
+        bool classified "true if confidence 70 or above"
+        string category "Validated incident type"
+        array immediateActions "From actionEngine"
+        array evidenceChecklist "From evidenceEngine"
+        array reportingGuidance "From reportingEngine"
+        array relevantLaws "From lawMappingEngine"
+        string timestamp "ISO8601 server time"
+    }
+    API_RESPONSE {
+        bool success "true on HTTP 200"
+        string reply "LLM guidance text"
+        object incidentData "Full intelligence payload"
+    }
+    SESSION_STATE {
+        array messages "All rendered chat bubbles"
+        string rollingSummary "Compressed session memory"
+        object incidentData "Latest classification"
+        int exchangeCount "Turn counter"
+    }
+    RENDERED_OUTPUT {
+        string markdownText "Safely rendered via react-markdown"
+        array sanitizedLinks "http https mailto only"
+        object investigationPanel "Actions Laws Evidence Portals UI"
+    }
+
+    USER_INPUT ||--|| CHAT_PAYLOAD : "useChat packs and trims"
+    CHAT_PAYLOAD ||--|| HMAC_HEADERS : "Web Crypto HMAC-SHA256"
+    CHAT_PAYLOAD ||--|| VALIDATED_PAYLOAD : "injection score and whitelist"
+    VALIDATED_PAYLOAD ||--|| REDACTED_SUMMARY : "11 PII regex patterns"
+    VALIDATED_PAYLOAD ||--|| SEVERITY_RESULT : "wildcard two-pass regex"
+    SEVERITY_RESULT ||--|| API_RESPONSE : "adapt maxTokens and call LLM"
+    REDACTED_SUMMARY ||--|| LLM_CLASSIFICATION_RESPONSE : "classifyIncident via LLM"
+    LLM_CLASSIFICATION_RESPONSE ||--|| INTELLIGENCE_PAYLOAD : "4 local DB lookups"
+    INTELLIGENCE_PAYLOAD ||--|| API_RESPONSE : "merged into data.incidentData"
+    API_RESPONSE ||--|| SESSION_STATE : "setState and sessionStorage sync"
+    SESSION_STATE ||--|| RENDERED_OUTPUT : "ChatMessage and InvestigationPanel"
+        </div>
+      </div>
+      <div class="diagram-toolbar">
+        <button class="btn" onclick="zoomDiagram('d15', 1.2)">＋ Zoom In</button>
+        <button class="btn" onclick="zoomDiagram('d15', 0.8)">－ Zoom Out</button>
+        <button class="btn" onclick="resetZoom('d15')">↺ Reset</button>
+        <span class="toolbar-sep">|</span>
+        <button class="btn" onclick="downloadSVG('d15', 'ER-01_Full_System_Map')">⬇ Save SVG</button>
+      </div>
+    </section>
+
+  </div><!-- /diagrams -->
+</div><!-- /main -->
+
+<script>
+  // ── Mermaid init ──
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    securityLevel: 'loose',
+    fontFamily: 'JetBrains Mono, monospace',
+    fontSize: 13,
+    flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+    sequence: { useMaxWidth: true, mirrorActors: false, actorMargin: 50 },
+    er: { useMaxWidth: true },
+    stateDiagram: { useMaxWidth: true }
+  });
+
+  // ── Zoom state ──
+  const zoomState = {};
+  function zoomDiagram(id, factor) {
+    const svg = document.querySelector(`#${id} svg`);
+    if (!svg) return;
+    const cur = zoomState[id] || 1;
+    const next = Math.max(0.3, Math.min(cur * factor, 5));
+    zoomState[id] = next;
+    svg.style.transform = `scale(${next})`;
+    svg.style.transformOrigin = 'top center';
+    svg.style.transition = 'transform 0.2s ease';
+  }
+  function resetZoom(id) {
+    zoomState[id] = 1;
+    const svg = document.querySelector(`#${id} svg`);
+    if (svg) { svg.style.transform = 'scale(1)'; }
+  }
+
+  // ── SVG download ──
+  function downloadSVG(id, name) {
+    const svg = document.querySelector(`#${id} svg`);
+    if (!svg) { alert('Diagram not yet rendered. Wait a moment.'); return; }
+    const clone = svg.cloneNode(true);
+    clone.style.transform = '';
+    const blob = new Blob([clone.outerHTML], { type: 'image/svg+xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${name}.svg`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ── Active nav on scroll ──
+  const sections = document.querySelectorAll('.diagram-section');
+  const navItems = document.querySelectorAll('.nav-item');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navItems.forEach(n => n.classList.remove('active'));
+        const active = document.querySelector(`.nav-item[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => obs.observe(s));
+
+  // ── Search ──
+  document.getElementById('searchInput').addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+    sections.forEach(s => {
+      const match = s.dataset.name.toLowerCase().includes(q);
+      s.style.display = match ? '' : 'none';
+    });
+  });
+</script>
+</body>
+</html>
